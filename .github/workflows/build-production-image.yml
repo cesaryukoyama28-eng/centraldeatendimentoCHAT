@@ -17,13 +17,16 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   production-contract-quality:
     uses: ./.github/workflows/centraldeatendimentochat-infrastructure.yml
 
   captain-agent-quality:
-    # Ruby and service-container dependencies remain on the ephemeral hosted
-    # image. The persistent runner is reserved for the expensive Docker build.
+    # Ruby and service-container dependencies run on the ephemeral hosted image.
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -199,24 +202,11 @@ jobs:
 
   build:
     needs: [production-contract-quality, captain-agent-quality, openjarvis-frontend-quality]
-    runs-on: ${{ github.event_name == 'pull_request' && 'ubuntu-latest' || 'acelerachat-ci' }}
+    # Production image builds are also hosted; no VPS10056 runner is required.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout exact revision
         uses: actions/checkout@v4
-
-      - name: Validate dedicated runner boundary
-        if: github.event_name != 'pull_request'
-        env:
-          EXPECTED_RUNNER_NAME: vps10056-acelerachat
-          MIN_FREE_GIB: '18'
-        run: |
-          set -euo pipefail
-          test "$RUNNER_NAME" = "$EXPECTED_RUNNER_NAME"
-          security_options=$(docker info --format '{{json .SecurityOptions}}')
-          [[ "$security_options" == *rootless* ]]
-          free_gib=$(df --output=avail -BG / | tail -1 | tr -dc '0-9')
-          (( free_gib >= MIN_FREE_GIB ))
-          echo "Dedicated runner verified with ${free_gib} GiB free." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3

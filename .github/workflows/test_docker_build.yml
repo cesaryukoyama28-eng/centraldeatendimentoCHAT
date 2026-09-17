@@ -3,12 +3,15 @@ name: Test Docker Build
 on:
   pull_request:
     branches:
-      - develop
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-build:

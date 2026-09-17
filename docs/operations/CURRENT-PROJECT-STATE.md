@@ -1,5 +1,14 @@
 # Estado atual do projeto
 
+## Preparação de runners hospedados — branch de trabalho
+
+Na branch `codex/hosted-runners-central`, o build, deploy e rollback manuais
+foram preparados para `ubuntu-24.04`; CI e contratos permanecem em runners
+GitHub-hosted. O workflow de verificação do runner antigo continua manual e
+isolado. VPS10054, `/opt/central-atendimento`, environments, secrets, variables,
+packages e referências GHCR não foram alterados; nenhum workflow ou deploy foi
+executado.
+
 Este é o documento canônico do estado operacional do
 `CENTRAL_ATENDIMENTO_CHAT`. O estado observado no Git sempre prevalece sobre
 qualquer valor copiado neste documento.
